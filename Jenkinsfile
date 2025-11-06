@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "dhavalbhimani44/polling-app"
+        DOCKER_IMAGE = "dhaval1522/polling-app"
         KUBECONFIG = credentials('kubeconfig-cred') // Jenkins credential ID
     }
 
@@ -16,7 +16,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${BRANCH_NAME} ./polling-app"
+                    sh "docker build -t ${DOCKER_IMAGE}:${BRANCH_NAME} ./app"
                 }
             }
         }
