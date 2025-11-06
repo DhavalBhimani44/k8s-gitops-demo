@@ -2,45 +2,49 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "dhaval1522/polling-app"
-        KUBECONFIG = credentials('kubeconfig-cred') // Jenkins credential ID
+        KUBECONFIG = credentials('kubeconfig-cred-id')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/dhavalBhimani44/k8s-gitops-demo.git'
+                checkout scm
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Push Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${BRANCH_NAME} ./app"
+                    sh '''
+                    docker build -t polling-app:${GIT_COMMIT} ./polling-app
+                    docker tag polling-app:${GIT_COMMIT} myrepo/polling-app:${GIT_BRANCH}
+                    docker push myrepo/polling-app:${GIT_BRANCH}
+                    '''
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh "docker push ${DOCKER_IMAGE}:${BRANCH_NAME}"
-                }
-            }
-        }
-
-        stage('Deploy to K8s') {
-            steps {
-                script {
-                    if (BRANCH_NAME == 'dev') {
-                        sh "kubectl apply -f k8s/dev/"
-                    } else if (BRANCH_NAME == 'prod') {
-                        sh "kubectl apply -f k8s/prod/"
+                    if (env.GIT_BRANCH == 'origin/dev') {
+                        sh 'kubectl apply -f k8s/dev/'
+                    } else if (env.GIT_BRANCH == 'origin/prod') {
+                        sh 'kubectl apply -f k8s/prod/'
                     } else {
-                        echo 'Branch not configured for deployment.'
+                        echo "Branch not recognized for deployment"
                     }
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful for branch ${GIT_BRANCH}"
+        }
+        failure {
+            echo "Deployment failed!"
         }
     }
 }

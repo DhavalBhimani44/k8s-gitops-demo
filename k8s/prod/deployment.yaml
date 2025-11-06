@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: polling-app
-        image: dhavalbhimani44/polling-app:prod
+        image: dhaval1522/polling-app:prod
         ports:
         - containerPort: 5000
