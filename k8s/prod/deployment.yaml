@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polling-app
+  namespace: polling-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: polling-app
+  template:
+    metadata:
+      labels:
+        app: polling-app
+    spec:
+      containers:
+      - name: polling-app
+        image: dhavalbhimani44/polling-app:prod
+        ports:
+        - containerPort: 5000
